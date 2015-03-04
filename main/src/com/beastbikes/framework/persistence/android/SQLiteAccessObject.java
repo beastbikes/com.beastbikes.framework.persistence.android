@@ -1,6 +1,7 @@
 package com.beastbikes.framework.persistence.android;
 
 import java.io.Serializable;
+import java.util.List;
 
 import android.content.ContentProvider;
 import android.content.ContentValues;
@@ -79,6 +80,16 @@ public abstract class SQLiteAccessObject<T extends PersistentObject> extends
 		final Serializable[] ids = new Serializable[pos.length];
 		for (int i = 0; i < pos.length; i++) {
 			ids[i] = pos[i].getId();
+		}
+
+		this.delete(ids);
+	}
+
+	@Override
+	public void delete(List<T> pos) throws PersistenceException {
+		final Serializable[] ids = new Serializable[pos.size()];
+		for (int i = 0; i < ids.length; i++) {
+			ids[i] = pos.get(i).getId();
 		}
 
 		this.delete(ids);
