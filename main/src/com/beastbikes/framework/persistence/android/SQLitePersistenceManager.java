@@ -1,7 +1,5 @@
 package com.beastbikes.framework.persistence.android;
 
-import java.util.Comparator;
-
 import android.database.sqlite.SQLiteDatabase;
 
 import com.beastbikes.framework.persistence.PersistenceManager;
@@ -12,22 +10,21 @@ import com.beastbikes.framework.persistence.PersistenceManager;
  * @author johnson
  * 
  */
-public interface SQLitePersistenceManager extends PersistenceManager,
-		Comparator<SQLiteUpgradeHandler> {
+public interface SQLitePersistenceManager extends PersistenceManager {
 
 	/**
 	 * Returns the upgrade handlers
 	 * 
 	 * @return the upgrade handlers
 	 */
-	public SQLiteUpgradeHandler[] getUpgradeHandlers();
+	public abstract SQLiteUpgradeHandler[] getUpgradeHandlers();
 
 	/**
 	 * Returns a writable {@link SQLiteDatabase}
 	 * 
 	 * @return a writable {@link SQLiteDatabase}
 	 */
-	public SQLiteDatabase getReadableDatabase();
+	public abstract SQLiteDatabase getReadableDatabase();
 
 	/**
 	 * Returns a readable {@link SQLiteDatabase}

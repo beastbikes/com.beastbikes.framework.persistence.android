@@ -1,6 +1,7 @@
 package com.beastbikes.framework.persistence.android;
 
 import java.util.Arrays;
+import java.util.Comparator;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -8,30 +9,22 @@ import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.database.sqlite.SQLiteOpenHelper;
 
 /**
- * {@link SQLitePersistenceSupport} is an abstraction of interface
- * {@link SQLitePersistenceManager}
+ * Android implementation of interface {@link SQLitePersistenceManager}
  * 
  * @author johnson
  * 
  */
 public abstract class SQLitePersistenceSupport extends SQLiteOpenHelper
-		implements SQLitePersistenceManager {
+		implements Comparator<SQLiteUpgradeHandler>, SQLitePersistenceManager {
 
-	/**
-	 * Create an instance of {@link SQLitePersistenceSupport}
-	 * 
-	 * @param context
-	 *            The android application context
-	 * @param name
-	 *            The SQLite database name
-	 * @param factory
-	 *            The cursor factory
-	 * @param version
-	 *            The SQLite database version
-	 */
 	public SQLitePersistenceSupport(Context context, String name,
 			CursorFactory factory, int version) {
 		super(context, name, factory, version);
+	}
+
+	@Override
+	public SQLiteUpgradeHandler[] getUpgradeHandlers() {
+		return new SQLiteUpgradeHandler[0];
 	}
 
 	@Override
@@ -41,7 +34,7 @@ public abstract class SQLitePersistenceSupport extends SQLiteOpenHelper
 
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-		final SQLiteUpgradeHandler[] handlers = getUpgradeHandlers();
+		final SQLiteUpgradeHandler[] handlers = this.getUpgradeHandlers();
 		if (null == handlers || handlers.length <= 0)
 			return;
 
@@ -52,7 +45,7 @@ public abstract class SQLitePersistenceSupport extends SQLiteOpenHelper
 			final int targetVersion = handler.getTargetVersion();
 
 			if (oldVersion < targetVersion) {
-				handler.upgrade(oldVersion, newVersion);
+				handler.upgrade(this, oldVersion, newVersion);
 			}
 		}
 	}
