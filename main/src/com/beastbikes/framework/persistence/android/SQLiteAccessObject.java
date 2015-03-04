@@ -53,14 +53,41 @@ public abstract class SQLiteAccessObject<T extends PersistentObject> extends
 	}
 
 	@Override
-	public void delete(T po) throws PersistenceException {
-		this.delete(po.getId());
+	public long count(String sql, String... args) throws PersistenceException {
+		Cursor c = null;
+
+		try {
+			c = this.rawQuery("SELECT * FROM " + getTableName() + " WHERE "
+					+ sql, args);
+			if (null != c && c.moveToNext()) {
+				return c.getLong(0);
+			}
+
+			return 0;
+		} catch (SQLException e) {
+			throw new PersistenceException(e);
+		} finally {
+			if (null != c && !c.isClosed()) {
+				c.close();
+				c = null;
+			}
+		}
 	}
 
 	@Override
-	public void delete(Serializable id) throws PersistenceException {
+	public void delete(T... pos) throws PersistenceException {
+		final Serializable[] ids = new Serializable[pos.length];
+		for (int i = 0; i < pos.length; i++) {
+			ids[i] = pos[i].getId();
+		}
+
+		this.delete(ids);
+	}
+
+	@Override
+	public void delete(Serializable... ids) throws PersistenceException {
 		final String whereClause = BaseColumns._ID + "=?";
-		final String[] whereArgs = { String.valueOf(id) };
+		final String[] whereArgs = { String.valueOf(ids) };
 
 		if (0 == this.delete(getTableName(), whereClause, whereArgs)) {
 			throw new PersistenceException();
@@ -98,7 +125,7 @@ public abstract class SQLiteAccessObject<T extends PersistentObject> extends
 	}
 
 	@Override
-	public void execute(String sql, Object... args) throws PersistenceException {
+	public void execute(String sql, String... args) throws PersistenceException {
 		final SQLitePersistenceManager pm = getPersistenceManager();
 		final SQLiteDatabase db = pm.getWritableDatabase();
 
