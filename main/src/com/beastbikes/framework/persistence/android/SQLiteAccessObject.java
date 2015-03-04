@@ -1,12 +1,13 @@
 package com.beastbikes.framework.persistence.android;
 
-import java.sql.ResultSet;
+import java.io.Serializable;
 
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.provider.BaseColumns;
 
 import com.beastbikes.framework.persistence.DataAccessObject;
 import com.beastbikes.framework.persistence.PersistenceException;
@@ -15,15 +16,85 @@ import com.beastbikes.framework.persistence.PersistentObject;
 public abstract class SQLiteAccessObject<T extends PersistentObject> extends
 		ContentProvider implements DataAccessObject<T> {
 
-	private SQLitePersistenceManager persistenceManager;
-	
-	public SQLiteAccessObject(SQLitePersistenceManager persistenceManager) {
-		this.persistenceManager = persistenceManager;
+	private SQLitePersistenceSupport support;
+
+	public SQLiteAccessObject(SQLitePersistenceSupport support) {
+		this.support = support;
 	}
+
+	public abstract String getTableName();
 
 	@Override
 	public SQLitePersistenceManager getPersistenceManager() {
-		return this.persistenceManager;
+		return this.support;
+	}
+
+	@Override
+	public long count() throws PersistenceException {
+		final String sql = "SELECT COUNT(*) FROM " + getTableName();
+
+		Cursor c = null;
+
+		try {
+			c = this.rawQuery(sql, null);
+			if (null != c && c.moveToNext()) {
+				return c.getLong(0);
+			}
+
+			return 0;
+		} catch (SQLException e) {
+			throw new PersistenceException(e);
+		} finally {
+			if (null != c && !c.isClosed()) {
+				c.close();
+				c = null;
+			}
+		}
+	}
+
+	@Override
+	public void delete(T po) throws PersistenceException {
+		this.delete(po.getId());
+	}
+
+	@Override
+	public void delete(Serializable id) throws PersistenceException {
+		final String whereClause = BaseColumns._ID + "=?";
+		final String[] whereArgs = { String.valueOf(id) };
+
+		if (0 == this.delete(getTableName(), whereClause, whereArgs)) {
+			throw new PersistenceException();
+		}
+	}
+
+	@Override
+	public boolean exists(T po) throws PersistenceException {
+		return this.exists(po.getId());
+	}
+
+	@Override
+	public boolean exists(Serializable id) throws PersistenceException {
+		final String sql = "SELECT COUNT(*) FROM " + getTableName() + " WHERE "
+				+ BaseColumns._ID + "=?";
+		final String[] args = { String.valueOf(id) };
+
+		Cursor c = null;
+
+		try {
+			c = this.rawQuery(sql, args);
+			if (null != c && c.moveToNext()) {
+				return c.getLong(0) > 0;
+			}
+
+			return false;
+		} catch (SQLException e) {
+			throw new PersistenceException(e);
+		} finally {
+			if (null != c && !c.isClosed()) {
+				c.close();
+				c = null;
+			}
+		}
 	}
 
 	@Override
@@ -36,13 +107,6 @@ public abstract class SQLiteAccessObject<T extends PersistentObject> extends
 		} catch (SQLException e) {
 			throw new PersistenceException(e);
 		}
-	}
-
-	@Override
-	public ResultSet query(String sql, String... args)
-			throws PersistenceException {
-		// TODO
-		return null;
 	}
 
 	protected Cursor query(String table, String[] columns, String selection,
@@ -104,6 +168,12 @@ public abstract class SQLiteAccessObject<T extends PersistentObject> extends
 		final SQLitePersistenceManager pm = getPersistenceManager();
 		final SQLiteDatabase db = pm.getWritableDatabase();
 		return db.delete(table, whereClause, whereArgs);
+	}
+
+	protected Cursor rawQuery(String sql, String[] selectionArgs) {
+		final SQLitePersistenceManager pm = getPersistenceManager();
+		final SQLiteDatabase db = pm.getReadableDatabase();
+		return db.rawQuery(sql, selectionArgs);
 	}
 
 }
