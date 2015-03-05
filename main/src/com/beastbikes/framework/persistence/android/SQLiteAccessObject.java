@@ -1,6 +1,5 @@
 package com.beastbikes.framework.persistence.android;
 
-import java.io.Serializable;
 import java.util.List;
 
 import android.content.ContentProvider;
@@ -77,7 +76,7 @@ public abstract class SQLiteAccessObject<T extends PersistentObject> extends
 
 	@Override
 	public void delete(T... pos) throws PersistenceException {
-		final Serializable[] ids = new Serializable[pos.length];
+		final String[] ids = new String[pos.length];
 		for (int i = 0; i < pos.length; i++) {
 			ids[i] = pos[i].getId();
 		}
@@ -87,7 +86,7 @@ public abstract class SQLiteAccessObject<T extends PersistentObject> extends
 
 	@Override
 	public void delete(List<T> pos) throws PersistenceException {
-		final Serializable[] ids = new Serializable[pos.size()];
+		final String[] ids = new String[pos.size()];
 		for (int i = 0; i < ids.length; i++) {
 			ids[i] = pos.get(i).getId();
 		}
@@ -96,11 +95,19 @@ public abstract class SQLiteAccessObject<T extends PersistentObject> extends
 	}
 
 	@Override
-	public void delete(Serializable... ids) throws PersistenceException {
-		final String whereClause = BaseColumns._ID + "=?";
-		final String[] whereArgs = { String.valueOf(ids) };
+	public void delete(String... ids) throws PersistenceException {
+		final StringBuilder sql = new StringBuilder(BaseColumns._ID);
 
-		if (0 == this.delete(getTableName(), whereClause, whereArgs)) {
+		sql.append(" in (");
+		for (int i = 0; i < ids.length; i++) {
+			if (i > 0) {
+				sql.append(",");
+			}
+			sql.append("?");
+		}
+		sql.append(")");
+
+		if (0 == this.delete(getTableName(), sql.toString(), ids)) {
 			throw new PersistenceException();
 		}
 	}
@@ -111,7 +118,7 @@ public abstract class SQLiteAccessObject<T extends PersistentObject> extends
 	}
 
 	@Override
-	public boolean exists(Serializable id) throws PersistenceException {
+	public boolean exists(String id) throws PersistenceException {
 		final String sql = "SELECT COUNT(*) FROM " + getTableName() + " WHERE "
 				+ BaseColumns._ID + "=?";
 		final String[] args = { String.valueOf(id) };
