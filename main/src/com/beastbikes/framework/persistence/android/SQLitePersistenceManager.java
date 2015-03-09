@@ -2,6 +2,7 @@ package com.beastbikes.framework.persistence.android;
 
 import android.database.sqlite.SQLiteDatabase;
 
+import com.beastbikes.framework.persistence.AbstractUpgradeHandler;
 import com.beastbikes.framework.persistence.PersistenceManager;
 
 /**
@@ -17,7 +18,7 @@ public interface SQLitePersistenceManager extends PersistenceManager {
 	 * 
 	 * @return the upgrade handlers
 	 */
-	public abstract SQLiteUpgradeHandler[] getUpgradeHandlers();
+	public abstract AbstractUpgradeHandler[] getUpgradeHandlers();
 
 	/**
 	 * Returns a writable {@link SQLiteDatabase}

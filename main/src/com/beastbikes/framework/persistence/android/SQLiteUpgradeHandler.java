@@ -1,6 +1,6 @@
 package com.beastbikes.framework.persistence.android;
 
-import android.database.sqlite.SQLiteOpenHelper;
+import android.database.sqlite.SQLiteDatabase;
 
 import com.beastbikes.framework.persistence.AbstractUpgradeHandler;
 
@@ -16,7 +16,7 @@ public abstract class SQLiteUpgradeHandler extends AbstractUpgradeHandler {
 		return (SQLitePersistenceManager) super.getPersistenceManager();
 	}
 
-	public abstract void upgrade(SQLiteOpenHelper helper, int oldVersion,
+	public abstract void upgrade(SQLiteDatabase db, int oldVersion,
 			int newVersion);
 
 }

@@ -45,7 +45,7 @@ public abstract class SQLitePersistenceSupport extends SQLiteOpenHelper
 			final int targetVersion = handler.getTargetVersion();
 
 			if (oldVersion < targetVersion) {
-				handler.upgrade(this, oldVersion, newVersion);
+				handler.upgrade(db, oldVersion, newVersion);
 			}
 		}
 	}
